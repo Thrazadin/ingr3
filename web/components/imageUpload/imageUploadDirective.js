@@ -1,23 +1,18 @@
-(function() {
-    'use strict';
-    var myApp = angular.module('ingr3', []);
-
-    /*
-     A directive to enable two way binding of file field
-     */
-    myApp.directive('demoFileModel', function ($parse) {
+angular
+    .module('ingr3', [])
+    .directive('demoFileModel', function ($parse) {
         return {
             restrict: 'A', //the directive can be used as an attribute only
 
             /*
-             link is a function that defines functionality of directive
-             scope: scope associated with the element
-             element: element on which this directive used
-             attrs: key value pair of element attributes
-             */
+            link is a function that defines functionality of directive
+            scope: scope associated with the element
+            element: element on which this directive used
+            attrs: key value pair of element attributes
+            */
             link: function (scope, element, attrs) {
                 var model = $parse(attrs.demoFileModel),
-                    modelSetter = model.assign; //define a setter for demoFileModel
+                  modelSetter = model.assign; //define a setter for demoFileModel
 
                 //Bind change event on the element
                 element.bind('change', function () {
@@ -30,4 +25,3 @@
             }
         };
     });
-})();

@@ -1,7 +1,6 @@
-(function () {
-    'use strict';
-    var myApp = angular.module('ingr3', []);
-    myApp.service('fileUploadService', function ($http, $q) {
+angular
+    .module('ingr3', [])
+    .service('fileUploadService', function ($http, $q) {
 
         this.uploadFileToUrl = function (file, uploadUrl) {
             //FormData, object of key/value pair for form fields and values
@@ -13,14 +12,13 @@
                 transformRequest: angular.identity,
                 headers: {'Content-Type': undefined}
 
-            }).success(function (response) {
-                deffered.resolve(response);
+        }).success(function (response) {
+            deffered.resolve(response);
 
-            }).error(function (response) {
-                deffered.reject(response);
-            });
+        }).error(function (response) {
+            deffered.reject(response);
+        });
 
-            return deffered.promise;
-        }
-    });
-})();
+        return deffered.promise;
+    }
+});

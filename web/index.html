@@ -12,9 +12,9 @@
         <script src='bower_components/angular-upload/angular-upload.min.js'></script>
         <!-- Custom Scripts -->
         <script src="scripts/app.js"></script>
-        <script src="components/imageUpload/imageUploadController.js"></script>
-        <script src="components/imageUpload/imageUploadDirectives.js"></script>
         <script src="components/imageUpload/imageUploadService.js"></script>
+        <script src="components/imageUpload/imageUploadDirectives.js"></script>
+        <script src="components/imageUpload/imageUploadController.js"></script>
         <script src="components/results/resultsController.js"></script>
         <!-- links -->
         <link rel="stylesheet" type="text/css" href="style.css" media="screen">
@@ -46,15 +46,16 @@
             <h2 style="text-align: center;">Select an image to upload (Food Labels Only Please): </h2>
 
             <!-- Image Upload -->
-            <!--<div ng-controller="FileUploadController">-->
-            <form>
-                <div class="row">
-                    <div class="col-sm-4 col-sm-offset-4" style="display: inline-block; padding: 10px;">
-                        <input type="file" demo-file-model="myFile" id ="myFileField" style="overflow: hidden; width: 250px; float: left; height: 35px;"/>
-                        <button ng-click="uploadFile()" class="btn btn-primary" style="float: right;">Analyze!</button>
+            <div>
+                <form>
+                    <div class="row">
+                        <div class="col-sm-4 col-sm-offset-4" style="display: inline-block; padding: 10px;">
+                            <input type="file" demo-file-model="myFile" id ="myFileField" style="overflow: hidden; width: 250px; float: left; height: 35px;"/>
+                            <button ng-click="uploadFile()" class="btn btn-primary" style="float: right;">Analyze!</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
 
             <br>
 
