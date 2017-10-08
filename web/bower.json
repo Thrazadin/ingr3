@@ -1,0 +1,20 @@
+{
+  "name": "ingr3",
+  "homepage": "https://github.com/Thrudvangs/ingr3",
+  "description": "",
+  "main": "app.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-upload": "^1.0.12",
+    "angular-chart.js": "^1.1.1",
+    "chart.js": "chartjs#^2.7.0"
+  }
+}

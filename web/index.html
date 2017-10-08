@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Meta -->
+        <meta charset="UTF-8">
+        <!-- Scripts -->
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src="bower_components/chart.js/dist/Chart.min.js"></script>
+        <script src="bower_components/angular-chart.js/dist/angular-chart.min.js"></script>
+        <script src='bower_components/angular-upload/angular-upload.min.js'></script>
+        <!-- Custom Scripts -->
+        <script src="scripts/app.js"></script>
+        <script src="components/imageUpload/imageUploadService.js"></script>
+        <script src="components/imageUpload/imageUploadDirectives.js"></script>
+        <script src="components/imageUpload/imageUploadController.js"></script>
+        <script src="components/results/resultsController.js"></script>
+        <!-- links -->
+        <link rel="stylesheet" type="text/css" href="style.css" media="screen">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    </head>
+
+    <body ng-app="ingr3">
+        <!-- Introduction To The App -->
+        <div class="fullSection" style="display: table; overflow: hidden;">
+            <div id="landingSection">
+                <h1>Welcome to Ingr3!</h1>
+                <br>
+                <p>
+                  We make it super easy to analyze how good, or bad, the food you eat is.  In 3 easy steps we will analyze the ingrediants
+                  of the food labels you provide!
+                </p>
+                <br>
+                <ul>
+                    <li>Take a picture of the food label in question.</li>
+                    <li>Click Analyze!</li>
+                    <li>Review your results</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Actual App -->
+        <div class="fullSection">
+
+            <h2 style="text-align: center;">Select an image to upload (Food Labels Only Please): </h2>
+
+            <!-- Image Upload -->
+            <div>
+                <form>
+                    <div class="row">
+                        <div class="col-sm-4 col-sm-offset-4" style="display: inline-block; padding: 10px;">
+                            <input type="file" demo-file-model="myFile" id ="myFileField" style="overflow: hidden; width: 250px; float: left; height: 35px;"/>
+                            <button ng-click="uploadFile()" class="btn btn-primary" style="float: right;">Analyze!</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <br>
+
+            <div class="row">
+                <div class="col-sm-8 col-sm-offset-2" id="bar-chart" ng-controller="BarCtrl">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" style="text-align: center;">RESULTS</div>
+                        <div class="panel-body">
+                            <canvas id="bar" class="chart chart-bar" chart-data="data" chart-labels="labels"
+                                chart-series="series" chart-options="options"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
