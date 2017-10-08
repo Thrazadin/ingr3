@@ -23,7 +23,7 @@ public class App
 {
 	//public static final String DEBUG_URL = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png";
 	//public static final String DEBUG_URL = "http://kambafit.com/wp-content/uploads/2017/07/Mac.png";
-	public static final String DEBUG_URL = "https://cdn.caffeineinformer.com/wp-content/uploads/dna-energy-drink-ingredients.jpg"; //monster energy drink
+	public static final String DEBUG_URL = "https://cdn.caffeineinformer.com/wp-content/uploads/dna-energy-drink-ingredients.jpg"; //monster energy drink url
 	
 	
     public static void main( String[] args )
