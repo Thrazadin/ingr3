@@ -1,0 +1,43 @@
+.fullSection {
+  width: 100%;
+  height: 100vh;
+  overflow: auto;
+  display: block;
+}
+
+#landingSection {
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle;
+  background-color: #7a9a95;
+  color: #70ab8f;
+}
+
+#landingSection h1 {
+  font-size: 80px;
+  font-family: monospace;
+  color: #dc5b21;
+}
+
+#landingSection p {
+  color: #fff;
+  font-size: 15px;
+  font-family: Georgia;
+}
+
+#landingSection ul {
+  color: #fff;
+  font-size: 15px;
+  font-family: Georgia;
+  text-align: center;
+}
+
+#landingSection li {
+  display: block;
+}
+
+#resultsSection {
+  text-align: center;
+  display: block;
+  vertical-align: middle;
+}
