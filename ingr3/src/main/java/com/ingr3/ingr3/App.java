@@ -26,18 +26,68 @@ public class App extends Applet
 	//public static final String DEBUG_URL = "http://kambafit.com/wp-content/uploads/2017/07/Mac.png";
 	public static final String DEBUG_URL = "https://cdn.caffeineinformer.com/wp-content/uploads/dna-energy-drink-ingredients.jpg"; //monster energy drink url
 	
-	public String getFinalJson() { 
-		FoodItem item = new FoodItem(getParameter("IMG_URL"));
-		return formJsonForGraph(item);
+	public static void main (String[] args)
+	{
+		while (true)
+		{
+			String url = getUrlFromFS();
+			FoodItem fi = new FoodItem(url);
+			String json = formJsonForGraph(fi);
+			printJsonToFS(json);
+		}
 	}
 	
-//    public static void main( String[] args )
-//    {
-//    	System.out.println(args[0]);
-//    	debug();
-//    }
-    
+	public String returnData()
+	{
+		String url = getParameter("test");
+		FoodItem item = new FoodItem(url);
+		return formJsonForGraph(item);
 
+	}
+
+	public static void printJsonToFS(String jsonData)
+	{
+		try {
+			PrintWriter writer = new PrintWriter("/home/steve/workspace/ingr3/src/main/java/com/ingr3/ingr3/jsonData.txt", "UTF-8");
+			writer.print(jsonData);
+			writer.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public static String getUrlFromFS()
+	{
+		File file = new File("/home/steve/workspace/ingr3/src/main/java/com/ingr3/ingr3/url.txt");
+		while (!file.isFile())
+		{
+			file = new File("/home/steve/workspace/ingr3/src/main/java/com/ingr3/ingr3/url.txt");
+			System.out.println("looking for url.txt");
+		}
+		System.out.println("url.txt found!");
+		BufferedReader reader;
+		StringBuilder sb = new StringBuilder();
+		try 
+		{
+			reader = new BufferedReader(new FileReader(file));
+			String text = null;
+			
+			while ((text=reader.readLine()) != null)
+			{
+				sb.append(text);
+			}
+			reader.close();
+			file.delete();
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		
+		return sb.toString();
+	}
+	
     //various debug functionality for app
     public static void debug()
     {

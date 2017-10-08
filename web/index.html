@@ -55,7 +55,21 @@
                 </form>
 
                 <br>
+                <script>
+                    var attributes = {id:'ingr3App',
+                    code:'App.class', archive:'ingr3.jar'};
+                    var parameters = {test:'{{imgUrl}}'};
+                    deployJava.runApplet(attributes, parameters, '1.8');    
+                    
+                </script>
+                <script language="javascript">
+                    function hello()
+                    {
+                        console.log(ignr3App.returnData());
+                    };
 
+                    hello();
+                </script>
                 <div class="row">
                     <div class="col-sm-8 col-sm-offset-2" id="bar-chart">
                         <div class="panel panel-default">
