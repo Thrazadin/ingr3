@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +16,11 @@ import java.io.*;
 import org.json.JSONObject;
 import org.json.JSONException;
 import org.json.JSONArray;
+import com.google.cloud.language.v1.Document;
+import com.google.cloud.language.v1.Document.Type;
+import com.google.cloud.language.v1.LanguageServiceClient;
+import com.google.cloud.language.v1.Sentiment;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * @author: Steven Byerly, Marshall Dickey
@@ -35,11 +41,9 @@ public class App
 //    	System.out.println(getNutrition(lookupIngredient("orange (fruit)")));
 //    	System.out.println(getNutrition(lookupIngredient("high fructose corn syrup")));
     	FoodItem macaroni = new FoodItem(DEBUG_URL);
-    	System.out.println("\n\n\n\n");
-    	for (Ingredient ingri : macaroni.ingredients)
-    	{
-    		System.out.println(ingri.name + ", " + ingri.desc);
-    	}
+//    	System.out.println("\n\n\n\n");
+    	System.out.println(formJsonForGraph(macaroni));
+//    	getSentiment("HFCS is composed of 76% carbohydrates and 24% water, containing no fat, no protein, and no essential nutrients in significant amounts (table). In a 100 gram serving, it supplies 281 Calories, whereas in one tablespoon of 19 grams, it supplies 53 Calories (table link");
     	
 //    	Ingredient milkfat = new Ingredient("milkfat");
 //    	System.out.println(milkfat.desc);
@@ -47,6 +51,53 @@ public class App
     	
     }
     
+    //create the json to be passed to the graphing functionality
+    public static String formJsonForGraph(FoodItem item)
+    {
+    	String[] names = new String[item.ingredients.size()];
+    	String[] desc = new String[item.ingredients.size()];
+    	double[][] healthValuesWrapper = new double[1][item.ingredients.size()];
+    	double[] healthValues = new double[item.ingredients.size()];	
+    	
+    	int counter = 0;
+    	for (Ingredient ingri : item.ingredients)
+    	{
+    		names[counter] = ingri.name;
+    		desc[counter] = ingri.desc;
+    		healthValues[counter] = ingri.healthValue;
+    		counter++;
+    	}
+    	
+    	healthValuesWrapper[0] = healthValues;
+    	JSONObject obj = new JSONObject();
+    	obj.put("names", names);
+    	obj.put("descriptions", desc);
+    	obj.put("healthValues", healthValuesWrapper);
+    	return obj.toString();
+    }
+    
+    //get sentiment from description
+    public static double getSentiment(String description)
+    {
+    	try (LanguageServiceClient language = LanguageServiceClient.create())
+    	{
+//    		GoogleCredential credential = GoogleCredential.getApplicationDefault();
+    		
+    		String text = description;
+    		Document doc = Document.newBuilder().setContent(text).setType(Type.PLAIN_TEXT).build();
+    		Sentiment sentiment = language.analyzeSentiment(doc).getDocumentSentiment();
+    		return sentiment.getScore();
+    		
+    	} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	return -999.0;
+    }
     
     public static String getJson(String URL)
     {
@@ -181,7 +232,7 @@ public class App
         in.close();
         
         String html = sb.toString(); // create html string from stringbuilder
-        Document wiki = Jsoup.parse(html);     
+        org.jsoup.nodes.Document wiki = Jsoup.parse(html);     
 
         //parse out the Nutrition/Nutrients section
         String nutritionText = "Not Found";
@@ -225,7 +276,7 @@ public class App
         }
         in.close();
         String html = sb.toString(); // create html string from stringbuilder
-        Document wiki = Jsoup.parse(html);        
+        org.jsoup.nodes.Document wiki = Jsoup.parse(html);        
         
         String searchText = wiki.text();
         
@@ -264,8 +315,13 @@ class Ingredient
 		this.name = name;
 		try {
 			this.desc = App.getNutrition(App.lookupIngredient(name));
-//			this.healthValue = App.getSentiment(this.desc); //TODO: FIX THIS
-		} catch (Exception e) {
+			
+			if (this.desc != null && !this.desc.equals("Not Found"))
+			{
+				
+				this.healthValue = new Double(new DecimalFormat("#.##").format(App.getSentiment(this.desc))); //TODO: FIX THIS
+			}
+			} catch (Exception e) {
 			System.out.println("Error initializing Ingredient object " + name);
 		}
 	}
