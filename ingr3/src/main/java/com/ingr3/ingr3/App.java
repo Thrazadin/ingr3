@@ -6,28 +6,35 @@ import org.jsoup.select.Elements;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
+import java.text.DecimalFormat;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.io.*;
 import org.json.JSONObject;
-import org.json.JSONException;
-import org.json.JSONArray;
+import com.google.cloud.language.v1.Document;
+import com.google.cloud.language.v1.Document.Type;
+import com.google.cloud.language.v1.LanguageServiceClient;
+import com.google.cloud.language.v1.Sentiment;
 
 /**
- * @author: Steven Byerly, Marshall Dickey
- * @desc: get nutrient information from wikipedia, pass to Google NLP API
+ * @author: Steven Byerly, Marshal Dickey
+ * @desc: get nutrient information from wikipedia, pass to Google NLP API, return to user
  */
-public class App 
+public class App
 {
 	//public static final String DEBUG_URL = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png";
 	//public static final String DEBUG_URL = "http://kambafit.com/wp-content/uploads/2017/07/Mac.png";
-	public static final String DEBUG_URL = "https://cdn.caffeineinformer.com/wp-content/uploads/dna-energy-drink-ingredients.jpg";
+	public static final String DEBUG_URL = "https://cdn.caffeineinformer.com/wp-content/uploads/dna-energy-drink-ingredients.jpg"; //monster energy drink url
 	
 	
-    public static void main( String[] args ) throws Exception
+    public static void main( String[] args )
+    {
+//    	System.out.println(args[0]);
+    	debug();
+    }
+    
+
+    //various debug functionality for app
+    public static void debug()
     {
 //    	System.out.println(getNutrition("https://en.wikipedia.org/wiki/High-fructose_corn_syrup"));
 //    	System.out.println(getNutrition("https://en.wikipedia.org/wiki/Rolled_oats"));
@@ -35,11 +42,9 @@ public class App
 //    	System.out.println(getNutrition(lookupIngredient("orange (fruit)")));
 //    	System.out.println(getNutrition(lookupIngredient("high fructose corn syrup")));
     	FoodItem macaroni = new FoodItem(DEBUG_URL);
-    	System.out.println("\n\n\n\n");
-    	for (Ingredient ingri : macaroni.ingredients)
-    	{
-    		System.out.println(ingri.name + ", " + ingri.desc);
-    	}
+//    	System.out.println("\n\n\n\n");
+//    	System.out.println(formJsonForGraph(macaroni));
+//    	getSentiment("HFCS is composed of 76% carbohydrates and 24% water, containing no fat, no protein, and no essential nutrients in significant amounts (table). In a 100 gram serving, it supplies 281 Calories, whereas in one tablespoon of 19 grams, it supplies 53 Calories (table link");
     	
 //    	Ingredient milkfat = new Ingredient("milkfat");
 //    	System.out.println(milkfat.desc);
@@ -47,6 +52,51 @@ public class App
     	
     }
     
+    //create the json to be passed to the graphing functionality
+    public static String formJsonForGraph(FoodItem item)
+    {
+    	String[] names = new String[item.ingredients.size()];
+    	String[] desc = new String[item.ingredients.size()];
+    	double[][] healthValuesWrapper = new double[1][item.ingredients.size()];
+    	double[] healthValues = new double[item.ingredients.size()];	
+    	
+    	int counter = 0;
+    	for (Ingredient ingri : item.ingredients)
+    	{
+    		names[counter] = ingri.name;
+    		desc[counter] = ingri.desc;
+    		healthValues[counter] = ingri.healthValue;
+    		counter++;
+    	}
+    	
+    	healthValuesWrapper[0] = healthValues;
+    	JSONObject obj = new JSONObject();
+    	obj.put("names", names);
+    	obj.put("descriptions", desc);
+    	obj.put("healthValues", healthValuesWrapper);
+    	return obj.toString();
+    }
+    
+    //get sentiment/healthValue from description String using google NLP API
+    public static double getSentiment(String description)
+    {
+    	try (LanguageServiceClient language = LanguageServiceClient.create())
+    	{
+    		String text = description;
+    		Document doc = Document.newBuilder().setContent(text).setType(Type.PLAIN_TEXT).build();
+    		Sentiment sentiment = language.analyzeSentiment(doc).getDocumentSentiment();
+    		return sentiment.getScore();
+    		
+    	} catch (IOException e) {
+    		System.out.println("IOexception caught while getting sentiment from description");
+			e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println("exception caught while getting sentiment from description");
+			e.printStackTrace();
+		}
+    	
+    	return -999.0;
+    }
     
     public static String getJson(String URL)
     {
@@ -167,8 +217,10 @@ public class App
     	return "Not Found";
     }
     
+    //get a string description of the nutritional information of an item linked to by param:url
     public static String getNutrition(String url) throws Exception
     {
+    	//get wiki HTML for parsing
     	URL wikiTest = new URL(url);
         BufferedReader in = new BufferedReader(new InputStreamReader(wikiTest.openStream()));
         
@@ -181,13 +233,18 @@ public class App
         in.close();
         
         String html = sb.toString(); // create html string from stringbuilder
-        Document wiki = Jsoup.parse(html);     
+        org.jsoup.nodes.Document wiki = Jsoup.parse(html);     
 
+        //select title for later utility - should only be one of these on all standard formatted wikipedia pages
+        Elements titleElements = wiki.select("h1");
+        String title = titleElements.get(0).text();
+        
         //parse out the Nutrition/Nutrients section
         String nutritionText = "Not Found";
         Elements newEles = wiki.select("h3, h2, p");
         for (Element element : newEles)
         {
+        	//look for a description of the ingredient in specific places, i.e. after 'nutrients' or 'nutritional value' headers
         	if ((element.is("h3")) && element.children().size() > 0 && element.child(0).attr("id").toLowerCase().contains("nutri"))
         	{
         		nutritionText = ((Element)element.nextSibling()).text();
@@ -197,21 +254,23 @@ public class App
         		nutritionText = ((Element)element.nextSibling()).text();
 			}
         	//if all else fails, grab the first paragraph of the page (UNDEFINED BEHAVIOR)
-//        	if (nutritionText.equals("Not Found") && element.is("p") && (element.previousElementSibling() == null || !element.previousElementSibling().is("p")))
-//        	{
-//        		nutritionText = element.text();
-//        	}
+        	if (nutritionText.equals("Not Found") && element.is("p") && (element.previousElementSibling() == null || !element.previousElementSibling().is("p")) &&
+        			element.text().contains(title))
+        	{
+        		System.out.println("title matched: " + title);
+        		nutritionText = element.text();
+        	}
          }
         
         
         return nutritionText;
     }
     
-    //get wikipedia article of ingredient based on name
-    //TODO: actually catch exceptions more specifically? 
+    //get wikipedia article of ingredient based on name, using wikipedia search API and article UIDs
+    //TODO: actually catch exceptions more specifically
     public static String lookupIngredient(String ingredient) throws Exception
     {
-    	//TODO: handle spaces correctly
+    	//craft and connect to URL using the ingredient string
     	String ingredientString = ingredient.replace(" ", "%20");
     	String url = "https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + ingredientString +"&srwhat=text&limit=1";
     	URL ingredientPage = new URL(url);
@@ -225,11 +284,11 @@ public class App
         }
         in.close();
         String html = sb.toString(); // create html string from stringbuilder
-        Document wiki = Jsoup.parse(html);        
+        org.jsoup.nodes.Document wiki = Jsoup.parse(html);        
         
         String searchText = wiki.text();
         
-        //use regex to find the page url
+        //use regex to find the page ID
         Pattern p = Pattern.compile("pageid.: ([0-9]+)");
 
         try
@@ -237,7 +296,7 @@ public class App
         	Matcher m = p.matcher(searchText);
         	if (m.find())
         	{
-        		//format and return page url correctly
+        		//format and return page url correctly using the id we found
         		return "https://en.wikipedia.org/?curid=" + m.group(1);
         	}
         	
@@ -253,26 +312,34 @@ public class App
     
 }
 
+//class to represent an Ingredient, an object with a healthValue field, a name field and a description field
 class Ingredient
 {
-	public double healthValue;
-	public String name;
-	public String desc;
+	public double healthValue; 		//used to show the 'sentiment'/health value of the description of the ingredient
+	public String name;				//name of the ingredient
+	public String desc;				//description of the ingredient, obtained from wikipedia
 	
 	public Ingredient(String name)
 	{
 		this.name = name;
 		try {
+			//attempt to look up a description for this ingredient
 			this.desc = App.getNutrition(App.lookupIngredient(name));
-//			this.healthValue = App.getSentiment(this.desc); //TODO: FIX THIS
-		} catch (Exception e) {
+			
+			//if description found, continue and use the description to find the healthValue/sentiment
+			if (this.desc != null && !this.desc.equals("Not Found"))
+			{
+				
+				this.healthValue = new Double(new DecimalFormat("#.##").format(App.getSentiment(this.desc))); 
+			}
+			} catch (Exception e) {
 			System.out.println("Error initializing Ingredient object " + name);
 		}
 	}
-	//TODO: add getters/setters
+	
 }
 
-//class to map an ingredient to it's description
+//class to store a HashSet of ingredient objects, and have a constructor that can initialize it correctly with all fields
 class FoodItem
 {
 	public HashSet<Ingredient> ingredients;
@@ -286,8 +353,11 @@ class FoodItem
 	//constructor to take in ingredient string, split on comma and populate ingredients
 	public FoodItem(String ingredientURL)
 	{
+		//get a set of ingredients as strings
 		HashSet<String> ingredientStrings = App.getIngredientsFromString(App.getIngredients(ingredientURL));
 		ingredients = new HashSet<Ingredient>();
+		
+		//for each valid ingredient string, create an Ingredient object and initialize fields
 		for (String ingredientString : ingredientStrings)
 		{
 			Ingredient ingriObj = new Ingredient(ingredientString);
@@ -302,10 +372,6 @@ class FoodItem
 			}
 		}
 		
-		//TODO: finish this
-		
-		
 	}
-	
 	
 }
