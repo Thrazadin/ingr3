@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import java.net.*;
 import java.text.DecimalFormat;
 import java.util.HashSet;
+import java.applet.Applet;
 import java.io.*;
 import org.json.JSONObject;
 import com.google.cloud.language.v1.Document;
@@ -19,18 +20,22 @@ import com.google.cloud.language.v1.Sentiment;
  * @author: Steven Byerly, Marshal Dickey
  * @desc: get nutrient information from wikipedia, pass to Google NLP API, return to user
  */
-public class App
+public class App extends Applet
 {
 	//public static final String DEBUG_URL = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png";
 	//public static final String DEBUG_URL = "http://kambafit.com/wp-content/uploads/2017/07/Mac.png";
 	public static final String DEBUG_URL = "https://cdn.caffeineinformer.com/wp-content/uploads/dna-energy-drink-ingredients.jpg"; //monster energy drink url
 	
+	public String getFinalJson() { 
+		FoodItem item = new FoodItem(getParameter("IMG_URL"));
+		return formJsonForGraph(item);
+	}
 	
-    public static void main( String[] args )
-    {
+//    public static void main( String[] args )
+//    {
 //    	System.out.println(args[0]);
-    	debug();
-    }
+//    	debug();
+//    }
     
 
     //various debug functionality for app
