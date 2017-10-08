@@ -21,19 +21,34 @@ import com.google.cloud.language.v1.Document.Type;
 import com.google.cloud.language.v1.LanguageServiceClient;
 import com.google.cloud.language.v1.Sentiment;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import java.applet.Applet;
+import java.awt.Button;
+import java.awt.Graphics;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 
 /**
  * @author: Steven Byerly, Marshall Dickey
  * @desc: get nutrient information from wikipedia, pass to Google NLP API
  */
-public class App 
+public class App
 {
 	//public static final String DEBUG_URL = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png";
 	//public static final String DEBUG_URL = "http://kambafit.com/wp-content/uploads/2017/07/Mac.png";
 	public static final String DEBUG_URL = "https://cdn.caffeineinformer.com/wp-content/uploads/dna-energy-drink-ingredients.jpg";
 	
 	
-    public static void main( String[] args ) throws Exception
+    public static void main( String[] args )
+    {
+//    	System.out.println(args[0]);
+    	debug();
+    }
+    
+
+    //various debug functionality for app
+    public static void debug()
     {
 //    	System.out.println(getNutrition("https://en.wikipedia.org/wiki/High-fructose_corn_syrup"));
 //    	System.out.println(getNutrition("https://en.wikipedia.org/wiki/Rolled_oats"));
@@ -42,7 +57,7 @@ public class App
 //    	System.out.println(getNutrition(lookupIngredient("high fructose corn syrup")));
     	FoodItem macaroni = new FoodItem(DEBUG_URL);
 //    	System.out.println("\n\n\n\n");
-    	System.out.println(formJsonForGraph(macaroni));
+//    	System.out.println(formJsonForGraph(macaroni));
 //    	getSentiment("HFCS is composed of 76% carbohydrates and 24% water, containing no fat, no protein, and no essential nutrients in significant amounts (table). In a 100 gram serving, it supplies 281 Calories, whereas in one tablespoon of 19 grams, it supplies 53 Calories (table link");
     	
 //    	Ingredient milkfat = new Ingredient("milkfat");
@@ -234,6 +249,10 @@ public class App
         String html = sb.toString(); // create html string from stringbuilder
         org.jsoup.nodes.Document wiki = Jsoup.parse(html);     
 
+        //select title for later utility - should only be one
+        Elements titleElements = wiki.select("h1");
+        String title = titleElements.get(0).text();
+        
         //parse out the Nutrition/Nutrients section
         String nutritionText = "Not Found";
         Elements newEles = wiki.select("h3, h2, p");
@@ -248,10 +267,12 @@ public class App
         		nutritionText = ((Element)element.nextSibling()).text();
 			}
         	//if all else fails, grab the first paragraph of the page (UNDEFINED BEHAVIOR)
-//        	if (nutritionText.equals("Not Found") && element.is("p") && (element.previousElementSibling() == null || !element.previousElementSibling().is("p")))
-//        	{
-//        		nutritionText = element.text();
-//        	}
+        	if (nutritionText.equals("Not Found") && element.is("p") && (element.previousElementSibling() == null || !element.previousElementSibling().is("p")) &&
+        			element.text().contains(title))
+        	{
+        		System.out.println("title matched: " + title);
+        		nutritionText = element.text();
+        	}
          }
         
         
