@@ -22,7 +22,9 @@ import org.json.JSONArray;
  */
 public class App 
 {
-	public static final String DEBUG_URL = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png";
+	//public static final String DEBUG_URL = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png";
+	public static final String DEBUG_URL = "http://kambafit.com/wp-content/uploads/2017/07/Mac.png";
+	
 	
     public static void main( String[] args ) throws Exception
     {
@@ -31,12 +33,12 @@ public class App
 //    	System.out.println(lookupIngredient("potato"));
 //    	System.out.println(getNutrition(lookupIngredient("orange (fruit)")));
 //    	System.out.println(getNutrition(lookupIngredient("high fructose corn syrup")));
-//    	FoodItem soup = new FoodItem("corn, potatoes, orange (fruit), high fructose corn syrup");
-//    	for (Ingredient ingri : soup.ingredients)
-//    	{
-//    		System.out.println(ingri.desc);
-//    	}
-//    	getSentimentHtml("FAKEBASE64IMG");
+    	FoodItem macaroni = new FoodItem(DEBUG_URL);
+
+//    	Ingredient milkfat = new Ingredient("milkfat");
+//    	System.out.println(milkfat.desc);
+//    	getIngredientsFromString(getIngredients(DEBUG_URL));
+    	
     }
     
     public static String getJson(String URL)
@@ -66,65 +68,96 @@ public class App
     	
     }
     
-    //get the 'sentiment' for the description, aka how good or bad it is using google's nlp api
-    public static double getSentimentHtml(String imgUri)
+    //make ingredient string look prettier
+    public static String trimIngredientString(String ingrString)
     {
+    	ingrString = ingrString.replace(":", "");
+    	ingrString = ingrString.replace("(", ",");
+    	ingrString = ingrString.replace(")", ",");
+    	ingrString = ingrString.replace("\\n", ",");
+    	ingrString = ingrString.replace("contains", ",");
+    	ingrString = ingrString.replace("\"", "");
+
+    	return ingrString;
     	
+    }
+    
+    //split and trim a String of ingredients into a hashset
+    public static HashSet<String> getIngredientsFromString(String ingredientString)
+    {
+    	HashSet<String> ingris = new HashSet<String>();
+    	String[] ingriArr = ingredientString.split(",");
+    	for (int i=0;i<ingriArr.length;i++)
+    	{
+    		ingriArr[i] = ingriArr[i].replace(",","").trim();
+    		
+    		if (ingriArr[i] != "") ingris.add(ingriArr[i]);
+
+    	}
+    	return ingris;
+    }
+    
+    //get ingredients from image URI using OCR API
+    public static String getIngredients(String imgUri)
+    {
+    	String responseText;
+    	URL url;
+    	HttpURLConnection http;
+    	String ingredientString;
     	try {
     		//create the http request
-			URL url = new URL("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBGD1ycwUM0QpnOIn5UTrqTMrmjzIL4fxo");
-			URLConnection con = url.openConnection();
-			HttpURLConnection http = (HttpURLConnection)con;
+			url = new URL("https://vision.googleapis.com/v1/images:annotate?key=AIzaSyBGD1ycwUM0QpnOIn5UTrqTMrmjzIL4fxo");
+			
+			http = (HttpURLConnection)url.openConnection();;
 			http.setRequestMethod("POST");
+			String requestBody = getJson(imgUri);
+			http.setRequestProperty("Content-Length", "" + Integer.toString(requestBody.getBytes().length));
+			http.setRequestProperty("Content-Language", "en-US");
+			http.setRequestProperty("Content-Type", "application/json");
+			http.setDoInput(true);
 			http.setDoOutput(true);
 			
-			String base64img = "TESTBASE64IMG";
-			String base64imgURI = "https://www.ambarinutrition.com/v/vspfiles/assets/images/macaroni%20&%20cheese%20label.jpg";
-			//String requestBody = "{\"requests\": [{\"image\": {\"content\": " + base64img + ": [{\"type\": \"TEXT_DETECTION\"}]}]}";
-			String requestBody = "{" + 
-  "requests\":[" +
-    "{" +
-      "image\":{" +
-        "source\":{" +
-          "imageUri\": " +
-            "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" +
-        "}" +
-      "}," +
-      "features\":[ " +
-        "{" +
-          "type\":\"TEXT_DETECTION\","+
-          "maxResults\":1"+
-        "}"+
-      "]" +
-    "}"+
-  "]" +
-"}";
-			http.setRequestProperty("Content-Type", "application/json");
-			http.setRequestProperty("charset", "utf-8");
-			byte[] out = requestBody.getBytes(StandardCharsets.UTF_8);
-			int length = out.length;
-			http.setFixedLengthStreamingMode(length);
-			http.connect();
-			try(OutputStream os = http.getOutputStream())
-			{
-				os.write(out);
-			}
+			DataOutputStream wr = new DataOutputStream ( http.getOutputStream());
+			wr.writeBytes(requestBody);
+			wr.flush();
+			wr.close();
 			
-			BufferedReader in = new BufferedReader(new InputStreamReader(http.getInputStream()));
-			String inputLine;
-			while ((inputLine = in.readLine()) != null)
+			InputStream is = http.getInputStream();
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+			String line;
+			StringBuffer response = new StringBuffer();
+			while ((line=rd.readLine()) != null)
 			{
-				System.out.println(inputLine);
+				response.append(line);
+				response.append('\r');
 			}
-			in.close();
+			rd.close();
+			
+			responseText = response.toString().toLowerCase();
 			
     	} catch (Exception e) {
-			System.out.println("exception caught for getSentiment call");
+			System.out.println("exception caught for getIngredients call");
 			e.printStackTrace();
+			return "Not Found";
 		}
+        Pattern p = Pattern.compile("ngredients(.+)");
+
+        try
+        {
+        	Matcher m = p.matcher(responseText);
+        	if (m.find())
+        	{
+//        		System.out.println(m.group(0));
+        		ingredientString = trimIngredientString(m.group(1));
+        		return ingredientString;
+        		
+        	}
+        } catch (IllegalStateException e)
+        {
+        	System.out.println("issue parsing json response from google vision");
+        }
     	
-    	
-    	return 0.0;
+    	return "Not Found";
     }
     
     public static String getNutrition(String url) throws Exception
@@ -156,7 +189,11 @@ public class App
 			{
         		nutritionText = ((Element)element.nextSibling()).text();
 			}
-        	
+        	//if all else fails, grab the first paragraph of the page
+        	if (nutritionText.equals("Not Found") && element.is("p") && (element.previousElementSibling() == null || !element.previousElementSibling().is("p")))
+        	{
+        		nutritionText = element.text();
+        	}
          }
         
         
@@ -231,7 +268,7 @@ class Ingredient
 //class to map an ingredient to it's description
 class FoodItem
 {
-	public Set<Ingredient> ingredients;
+	public HashSet<Ingredient> ingredients;
 	
 	//default constructor
 	public FoodItem()
@@ -240,16 +277,28 @@ class FoodItem
 	}
 	
 	//constructor to take in ingredient string, split on comma and populate ingredients
-	public FoodItem(String ingredientString)
+	public FoodItem(String ingredientURL)
 	{
+		HashSet<String> ingredientStrings = App.getIngredientsFromString(App.getIngredients(ingredientURL));
 		ingredients = new HashSet<Ingredient>();
-		//TODO: finish this
-		String[] ingriStrings = ingredientString.split(",");
-		for (int i=0;i<ingriStrings.length;i++)
+		for (String ingredientString : ingredientStrings)
 		{
-			Ingredient currIngr = new Ingredient(ingriStrings[i].trim());
-			ingredients.add(currIngr);
+			Ingredient ingriObj = new Ingredient(ingredientString);
+			if (ingriObj.desc != null && !ingriObj.desc.equals("Not Found")) 
+				{
+				ingredients.add(ingriObj); //check for problem ingredients without descs
+				System.out.println("adding " + ingriObj.name + " with desc " + ingriObj.desc);
+				}
+			if (ingriObj.desc == null || (ingriObj.desc.equals("Not Found")))
+			{
+				System.out.println("Did not find description for " + ingriObj.name);
+			}
 		}
+		
+		//TODO: finish this
+		
+		
 	}
+	
 	
 }
