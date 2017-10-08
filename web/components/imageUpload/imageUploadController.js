@@ -1,16 +1,13 @@
 angular
     .module('ingr3', [])
     .controller('ImageUploadController', function ($scope, fileUploadService) {
-
+        console.log("got here");
         $scope.uploadFile = function () {
-            var file = $scope.myFile;
-            var uploadUrl = "../server/service.php", //Url of webservice/api/server
-              promise = fileUploadService.uploadFileToUrl(file, uploadUrl);
-
-        promise.then(function (response) {
-            $scope.serverResponse = response;
-        }, function () {
-            $scope.serverResponse = 'An error has occurred';
-        })
+            var appletAttributes = {code:''};
+            var appletParameters = {fileLocation: $scope.myFile};
+            var javaVersion = '1.8';
+            //deployJava.runApplet(appletAttributes, appletParameters, javaVersion);
+            console.log("This is running");
+            console.log($scope.myFile);
     };
 });

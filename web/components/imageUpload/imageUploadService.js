@@ -1,4 +1,4 @@
-angular
+/*angular
     .module('ingr3', [])
     .service('fileUploadService', function ($http, $q) {
 
@@ -22,3 +22,4 @@ angular
         return deffered.promise;
     }
 });
+*/

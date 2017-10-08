@@ -1,4 +1,4 @@
-angular
+/*angular
     .module('ingr3', [])
     .directive('demoFileModel', function ($parse) {
         return {
@@ -9,7 +9,7 @@ angular
             scope: scope associated with the element
             element: element on which this directive used
             attrs: key value pair of element attributes
-            */
+            *//*
             link: function (scope, element, attrs) {
                 var model = $parse(attrs.demoFileModel),
                   modelSetter = model.assign; //define a setter for demoFileModel
@@ -25,3 +25,4 @@ angular
             }
         };
     });
+*/
