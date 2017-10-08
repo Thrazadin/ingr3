@@ -23,7 +23,8 @@ import org.json.JSONArray;
 public class App 
 {
 	//public static final String DEBUG_URL = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png";
-	public static final String DEBUG_URL = "http://kambafit.com/wp-content/uploads/2017/07/Mac.png";
+	//public static final String DEBUG_URL = "http://kambafit.com/wp-content/uploads/2017/07/Mac.png";
+	public static final String DEBUG_URL = "https://cdn.caffeineinformer.com/wp-content/uploads/dna-energy-drink-ingredients.jpg";
 	
 	
     public static void main( String[] args ) throws Exception
@@ -34,12 +35,18 @@ public class App
 //    	System.out.println(getNutrition(lookupIngredient("orange (fruit)")));
 //    	System.out.println(getNutrition(lookupIngredient("high fructose corn syrup")));
     	FoodItem macaroni = new FoodItem(DEBUG_URL);
-
+    	System.out.println("\n\n\n\n");
+    	for (Ingredient ingri : macaroni.ingredients)
+    	{
+    		System.out.println(ingri.name + ", " + ingri.desc);
+    	}
+    	
 //    	Ingredient milkfat = new Ingredient("milkfat");
 //    	System.out.println(milkfat.desc);
 //    	getIngredientsFromString(getIngredients(DEBUG_URL));
     	
     }
+    
     
     public static String getJson(String URL)
     {
@@ -189,11 +196,11 @@ public class App
 			{
         		nutritionText = ((Element)element.nextSibling()).text();
 			}
-        	//if all else fails, grab the first paragraph of the page
-        	if (nutritionText.equals("Not Found") && element.is("p") && (element.previousElementSibling() == null || !element.previousElementSibling().is("p")))
-        	{
-        		nutritionText = element.text();
-        	}
+        	//if all else fails, grab the first paragraph of the page (UNDEFINED BEHAVIOR)
+//        	if (nutritionText.equals("Not Found") && element.is("p") && (element.previousElementSibling() == null || !element.previousElementSibling().is("p")))
+//        	{
+//        		nutritionText = element.text();
+//        	}
          }
         
         
